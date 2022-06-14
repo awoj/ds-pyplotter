@@ -1551,7 +1551,7 @@ sys.exit()
 
 # # Appendix
 
-# In[ ]:
+
 
 
 '''
@@ -1585,13 +1585,13 @@ master.mainloop()
 ''';
 
 
-# In[ ]:
+
 
 
 #column = select
 
 
-# In[ ]:
+
 
 
 '''
@@ -1615,7 +1615,7 @@ plt.show()
 ''';
 
 
-# In[ ]:
+
 
 
 '''
@@ -1637,7 +1637,7 @@ plt.show()
 ''';
 
 
-# In[ ]:
+
 
 
 

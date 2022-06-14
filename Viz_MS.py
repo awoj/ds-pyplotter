@@ -32,7 +32,7 @@ from pandastable import Table, TableModel
 from sklearn.metrics import r2_score
 
 
-# In[ ]:
+
 
 
 # GUI
@@ -42,7 +42,7 @@ curr_amps = ["A", "mA"]
 ordr = [1,2,3,4,5,6,7,8,9]
 t_f = ['False', 'True']
 incs = [1,2,5,10]
-temps = ['$T_j (°C)$', '$T_c (°C)$']
+temps = ['Tj (°C)', 'Tc (°C)']
 
 def browse_button():
     # Allow user to select a directory and store it in global var
@@ -52,13 +52,13 @@ def browse_button():
     folder_path.set(filename)
 
 root = ThemedTk(theme='adapta')
-root.title("GUI")
+root.title("ds-pyplotter v0")
 
 # General Inputs
 Label(root, text = "General Inputs", font=("Arial Bold", 12)).grid(row = 0, sticky = W)
 
 Label(root, text = "Directory").grid(row = 1, sticky = W)
-Label(root, text = "Filename(s) (Please have same first letters if multiple datasheets)").grid(row = 2, sticky = W)
+Label(root, text = "Filename(s) (must start with same name)").grid(row = 2, sticky = W)
 Label(root, text = "Filetype").grid(row = 3, sticky = W)
 
 # For Thermal Data
@@ -69,7 +69,7 @@ Label(root, text = "Reference Temperature (°C) (Thermal)").grid(row = 5, sticky
 Label(root, text = "Set Temperature (°C) (Electrical)").grid(row = 6, sticky = W)
 Label(root, text = "Reference Current (A) (Electrical)").grid(row = 7, sticky = W)
 
-# General Info
+# General Info TODO figure out what this dropdown does (if anything)?
 # Label(root, text = "Current Info (A or mA)").grid(row = 8, sticky = W)
 Label(root, text = "Current Source Type (Select None if SP, CW, PWM1, and PWM2)").grid(row = 9, sticky = W)
 
@@ -85,8 +85,8 @@ Label(root, text = "Graph Options", font=("Arial Bold", 12)).grid(row = 12, stic
 Label(root, text = "Temperature Range (°C)").grid(row = 13, sticky = W)
 Label(root, text = "Current Range (A)").grid(row = 15, sticky = W)
 # # of Bins
-Label(root, text = "Increments for Temperature Ticks (Default - Increments of 10°C)").grid(row = 14, sticky = W)
-Label(root, text = "Increments for Current Ticks (Default - Increments of 1A)").grid(row = 16, sticky = W)
+Label(root, text = "Increments for Temperature Ticks (default = 10°C steps)").grid(row = 14, sticky = W)
+Label(root, text = "Increments for Current Ticks (default = 1A steps)").grid(row = 16, sticky = W)
 # What order
 Label(root, text = "Order (Ex: 1=Linear)").grid(row = 17, sticky = W)
 # Show points or no
@@ -96,7 +96,7 @@ Label(root, text = "Export as Excel Worksheet?").grid(row = 19, sticky = W)
 # Change Voltage numbers?
 Label(root, text = "Change Voltage Numbers?").grid(row = 20, sticky = W)
 # Tj vs Tc
-Label(root, text = "Select Tj or Tc").grid(row = 21, sticky = W)
+Label(root, text = "Reported Temp Type").grid(row = 21, sticky = W)
 
 # Directory
 folder_path = StringVar()
@@ -105,28 +105,28 @@ e0 = ttk.Entry(master=root,textvariable=folder_path)
 dir_button = ttk.Button(text="Browse", command=browse_button)
 # Filename(s)
 e1 = ttk.Entry(root)
-e1.insert(0, "CBM-50X-UV") # Change it to any filename you like
+e1.insert(0, "CFT-90-CG-L11-CW") # Change it to any filename you like
 # Filetype
 e2 = ttk.Entry(root)
 e2.insert(0, ".xlsx")
 # Temps & Amps
 e3 = ttk.Entry(root)
-e3.insert(0, 5)
+e3.insert(0, 2.25)
 e4 = ttk.Entry(root)
-e4.insert(0, 40)
+e4.insert(0, 25)
 e5 = ttk.Entry(root)
-e5.insert(0, 40)
+e5.insert(0, 25)
 e6 = ttk.Entry(root)
-e6.insert(0, 5)
+e6.insert(0, 2.25)
 
 # Dropdown menu
 # e7 = StringVar(root)
 # e7.set(curr_amps[0])
 # drops = OptionMenu(root,e7,*curr_amps)
 
-# Dropdown menu
+# Dropdown menu for drive mode
 e8 = StringVar(root)
-e8.set(curr_options[1])
+e8.set(curr_options[0])
 drop = OptionMenu(root,e8,*curr_options)
 
 # Output directory
@@ -207,6 +207,7 @@ g7x.grid(row = 19, column = 1)
 g8x.grid(row = 20, column = 1)
 g9x.grid(row = 21, column = 1)
 
+# capture user input from GUI
 def getInput():
 
     a = e0.get()
@@ -243,7 +244,7 @@ ttk.Button(root, text = "Submit",
 mainloop()
 
 
-# In[ ]:
+
 
 
 # Kill script if GUI has empty spots
@@ -257,7 +258,7 @@ if '' in overall:
     sys.exit() # Kill script
 
 
-# In[ ]:
+
 
 
 # Input info
@@ -287,8 +288,6 @@ output_f = overall[8]  # <- This is where the folder where you would like to put
 over = bool(strtobool(overall[9]))
 
 
-# In[ ]:
-
 
 # Select the columns you want from the excel spreadsheet
 
@@ -298,8 +297,7 @@ select_cols = ['Comment', 'Source mode - Currentsource',  'Source current - Curr
                'Set Temperature - LED870 / °C', 'Temperature - LED870 / °C', 
                'CCT / K', 'CRI', 'Red Effect / %', 'Width50 / nm']
 
-
-# 'Last Dark Current / min', 'Signal Level / Counts', 'Signal Level / %', 'Scotopic / lm', 'UVA / W', 'UVB / W', 'UVC / W', 
+# 'Last Dark Current / min', 'Signal Level / Counts', 'Signal Level / %', 'Scotopic / lm', 'UVA / W', 'UVB / W', 'UVC / W',
 # 'VIS / W', 'Tristimulus_X / lm', 'Tristimulus_Y / lm', 'Tristimulus_Z / lm', 'z - Color Coordinates', 'u - Color Coordinates', 
 # 'v1960 - Color Coordinates', 'v1976 - Color Coordinates', 'Vis Effect / %'
 
@@ -336,7 +334,7 @@ column_rn = ['Serial Number',  xt, xc, 'Measured Current (A)', '$V_f$ (V)',
 # 'Vis Effect (%)', 'CCT',
 
 
-# In[ ]:
+
 
 
 # IMPORTANT - OUTPUT
@@ -436,7 +434,7 @@ exp = bool(strtobool(overall[18]))
 volt = bool(strtobool(overall[19]))
 
 
-# In[ ]:
+
 
 
 # Change directory
@@ -444,7 +442,7 @@ os.chdir(directory)
 pathlib.Path.cwd()
 
 
-# In[ ]:
+
 
 
 # Check whether the specified path exists or not
@@ -457,7 +455,7 @@ if not isExist:
   Mbox("Create output dir", "The output directory has been created: " + output_f, 0)
 
 
-# In[ ]:
+
 
 
 # Identifies all filenames in the directory
@@ -470,11 +468,7 @@ filesnames = [f for f in filesnames if (f.startswith(name) and f.lower().endswit
 # Here we concat similarly named files together - nice for putting together different test datasets on the same chips
 
 df = pd.concat(map(pd.read_excel, filesnames)) # Change to read_csv for csv files
-df
-
-
-# In[ ]:
-
+#df
 
 # Double check if imported worksheets are not empty - if empty, script is killed
 if df.empty:
@@ -482,19 +476,48 @@ if df.empty:
     sys.exit() # Kill script
 
 
-# In[ ]:
+#Figure out Vektrex/Spectrometer HW config first to know what column names to expect
+
+# Possible list of current/voltage column names depending on tester HW
+# If_columns[0] = Vektrex PRF w/o stray light CAS spectrometer
+# If_columns[1] = Vektrex SMU
+# If_columns[2] = CAS with stray light (gonio)? - two instances: set/measured current
+
+If_columns = [ 'Source current - Currentsource / A', 'Current - Currentsource / mA', 'Current - Currentsource / A' ]
+Vf_columns = [ 'Voltage  - Currentsource / V', 'Voltage - Currentsource / V' ]
+
+curr_name = ""
+volt_name = ""
+
+# Determine current column name
+for (count, name) in enumerate(If_columns):
+    tempCurr = If_columns[count]
+    if tempCurr in df:
+        curr_name = tempCurr
+        break
+
+# Determine voltage column name
+for (count, name) in enumerate(Vf_columns):
+    tempVolt = Vf_columns[count]
+    if tempVolt in df:
+        volt_name = tempVolt
+        break
+
+if not curr_name or not volt_name:
+    Mbox('Error!', 'Could not determine column names: current or voltage', 0)
+    sys.exit() # rip
+else:
+    #Overwrite current/voltage column names if different
+    select_cols[2] = curr_name
+    select_cols[4] = volt_name
 
 
 # Double check if expected columns are not missing
-
 try:
     df = df[select_cols]
 except KeyError as e:
     Mbox('Error!', repr(e) + '\n Fix then Restart & Run All', 0)
     sys.exit() # Kill script
-
-
-# In[ ]:
 
 
 # Select columns needed - ADD OR REMOVE AS NEEDED
@@ -504,46 +527,47 @@ df['Comment'] = df['Comment'].astype(str)
 
 # if SP, CW, PWM1, and PWM2 - dropdown menu, else skip
 
-if pulse_width == "None":
-    df['Comment Spec'] = df['Comment'].str.split('-').str.get(0)
-    first_column = df.pop('Comment Spec')
-    df.insert(0, 'Comment Spec', first_column)
-    #df = df.reset_index()
-    nm = list(df['Comment Spec'].unique())
 
-    root = ThemedTk(theme='arc')
-    root.title("GUI for SP, CW, PWM1, or PWM2 Selection")
-
-    Label(root, text = "Select SP, CW, PWM1, or PWM2").grid(row = 1, sticky = W)
-
-    e7 = StringVar(root)
-    e7.set(nm[0])
-    drop = ttk.OptionMenu(root,e7,*nm)
-
-    drop.grid(row = 2)
-    
-    def kill():
-        global h
-        h = e7.get()
-        root.destroy()
-    
-    ttk.Button(root, text = "Submit",
-           command = kill).grid(row = 50)
-
-    root.mainloop()
-    
-    df = df[df['Comment Spec'] == h]
-    
-    df = df.drop(['Comment Spec'], axis=1)
-else:
-    df = df[df[cols_puls] == pulse_width]
-
-df = df.drop([cols_puls], axis=1)
-df = df.dropna()
+# if pulse_width == "None":
+#     df['Comment Spec'] = df['Comment'].str.split('-').str.get(0)
+#     first_column = df.pop('Comment Spec')
+#     df.insert(0, 'Comment Spec', first_column)
+#     #df = df.reset_index()
+#     nm = list(df['Comment Spec'].unique())
+#
+#     root = ThemedTk(theme='arc')
+#     root.title("GUI for SP, CW, PWM1, or PWM2 Selection")
+#
+#     Label(root, text = "Select SP, CW, PWM1, or PWM2").grid(row = 1, sticky = W)
+#
+#     e7 = StringVar(root)
+#     e7.set(nm[0])
+#     drop = ttk.OptionMenu(root,e7,*nm)
+#
+#     drop.grid(row = 2)
+#
+#     def kill():
+#         global h
+#         h = e7.get()
+#         root.destroy()
+#
+#     ttk.Button(root, text = "Submit",
+#            command = kill).grid(row = 50)
+#
+#     root.mainloop()
+#
+#     df = df[df['Comment Spec'] == h]
+#
+#     df = df.drop(['Comment Spec'], axis=1)
+# else:
+#     df = df[df[cols_puls] == pulse_width]
+#
+# df = df.drop([cols_puls], axis=1)
+# df = df.dropna()
 #df
 
 
-# In[ ]:
+
 
 
 # Check for any zeros
@@ -561,7 +585,7 @@ if not xd.empty:
             Frame.__init__(self)
             self.main = self.master
             self.main.geometry('600x400+200+100')
-            self.main.title('Observations with zeros which will be dropped')
+            self.main.title('Results with zeros will be dropped')
             f = Frame(self.main)
             f.pack(fill=BOTH,expand=1)
             self.table = pt = Table(f, dataframe=xd,
@@ -575,7 +599,7 @@ if not xd.empty:
     #Mbox('Warning!', 'Please double-check these serial numbers - ' + str(xdl) + '\n The rows will be dropped.', 0)
 
 
-# In[ ]:
+
 
 
 # Drop any rows that have 0s
@@ -588,11 +612,12 @@ if df.empty:
     Mbox('Error!', 'The dataframe is empty', 0)
     sys.exit() # Kill script
 
+# Housekeeping
+del xd
+del xdl
 
-# In[ ]:
 
-
-# If Voltage above 200v, point out row and drop
+# If Voltage above 200V, point out row and drop
 
 df_200v = df[df['Voltage  - Currentsource / V'] >= 200]
 df = df[df['Voltage  - Currentsource / V'] < 200]
@@ -605,7 +630,7 @@ if not df_200v.empty:
             Frame.__init__(self)
             self.main = self.master
             self.main.geometry('600x400+200+100')
-            self.main.title('Observations above 200v which will be dropped')
+            self.main.title('Observations above 200V which will be dropped')
             f = Frame(self.main)
             f.pack(fill=BOTH,expand=1)
             self.table = pt = Table(f, dataframe=df_200v,
@@ -618,12 +643,11 @@ if not df_200v.empty:
     app.mainloop()
     #Mbox('Warning!', 'At least one observation has voltage above 200v \n they will be dropped', 0)
 
+# Housekeeping
+del df_200v
 
-# In[ ]:
 
-
-# Optionally - input box for raising or lowering Voltage value
-
+# Optionally - input to apply a voltage offset value (for correcting Vsense issues)
 if volt == True:
     root = ThemedTk(theme='arc')
     root.title("GUI for Changing Voltage Value")
@@ -650,22 +674,14 @@ else:
     pass
 
 
-# In[ ]:
-
-
 # Get all unique SNs
 df["Comment"] = df["Comment"].astype(str) # Change to string
 sn_unique = df['Comment'].unique()
 sn_unique.sort()
 sn_uniq = list(sn_unique)
-sn_uni = list(sn_unique)
-
-
-# In[ ]:
-
+sn_uni = list(sn_unique) #FIXME why so many nearly identical arrays, optimize
 
 # Pop-up menu for filtering by Serial Number if needed
-
 root = ThemedTk(theme='arc')
 root.title("GUI")
 
@@ -673,7 +689,6 @@ root.title("GUI")
 ttk.Label(root, text = "Filtering by Serial Number", font=("Arial Bold", 12)).pack(anchor = 'w')
 
 sn_list = []
-
 for x in range(len(sn_unique)):
     sn_uniq[x] = IntVar()
     l = Checkbutton(root, text=sn_unique[x], variable=sn_uniq[x], font=("Arial", 8)) # Change font size if too many vars
@@ -689,44 +704,25 @@ ttk.Button(root, text = "OK", command = kill).pack()
 
 root.mainloop()
 
-
-# In[ ]:
-
-
 # Append the unique array and list to filter
-
 sn_df = pd.DataFrame(
     {'SN': sn_uni,
      'Select': sn_list
     })
 sn_df = sn_df[sn_df['Select']==1]  # Select only 1's
 
-
-# In[ ]:
-
-
 # Take the SNs selected
 df = df[df['Comment'].isin(sn_df['SN'])]
-#df
 
-
-# In[ ]:
-
-
-# Just in case - converts to numeric
+# Just in case - cast all columns except SN to numeric
 cols = df.columns.drop('Comment')
-df[cols] = df[cols].apply(pd.to_numeric, errors='coerce')
+#df[cols] = df[cols].apply(pd.to_numeric, errors='coerce') FIXME array size mismatch? idgi skip for now
 
 
-# In[ ]:
 
 
 # Get groupby means for normalization
 df = df.groupby(['Comment', 'Set Temperature - LED870 / °C', 'Source current - Currentsource / A']).mean().reset_index()
-#df
-
-
-# In[ ]:
 
 
 # Filtering for thermal data and electrical data (identify set amps / temp)
@@ -747,7 +743,7 @@ if therm.empty or elect.empty:
 #therm
 
 
-# In[ ]:
+
 
 
 # Create column 'mean' as baseline
@@ -760,7 +756,7 @@ thermx = therm[therm[cols_temp] == ref_temp]
 #therm.tail()
 
 
-# In[ ]:
+
 
 
 # Duplicate therm data and filter
@@ -772,7 +768,7 @@ thermx = thermx.drop(['Set Temperature - LED870 / °C', 'Source current - Curren
                    'Temperature - LED870 / °C', 'CCT / K'], axis=1)
 
 
-# In[ ]:
+
 
 
 # Calculations
@@ -785,7 +781,7 @@ test2 = test2[test2.select_dtypes(include=['number']).columns] * 100
 thermz = pd.concat([therm2, test.iloc[:,1:], test2], axis=1)
 
 
-# In[ ]:
+
 
 
 # Electrical
@@ -797,7 +793,7 @@ electx = elect[elect[cols_curr] == ref_current]
 #elect.tail()
 
 
-# In[ ]:
+
 
 
 # Duplicate therm data and filter
@@ -809,7 +805,7 @@ electx = electx.drop(['Set Temperature - LED870 / °C', 'Source current - Curren
                    'Temperature - LED870 / °C', 'CCT / K'], axis=1)
 
 
-# In[ ]:
+
 
 
 # Calculations
@@ -822,7 +818,7 @@ test2 = test2[test2.select_dtypes(include=['number']).columns] * 100
 electz = pd.concat([elect2, test.iloc[:,1:], test2], axis=1)
 
 
-# In[ ]:
+
 
 
 # If reference temp/current doesn't exist, kill script and show error
@@ -831,14 +827,14 @@ if thermx.empty or electx.empty:
     sys.exit() # Kill script
 
 
-# In[ ]:
+
 
 
 thermz.columns = column_rn
 electz.columns = column_rn
 
 
-# In[ ]:
+
 
 
 # For horizontal line on graph
@@ -846,7 +842,7 @@ thermz_m = thermz[thermz[xt] == ref_temp].iloc[0]
 electz_m = electz[electz[xc] == ref_current].iloc[0]
 
 
-# In[ ]:
+
 
 
 # Change to string
@@ -854,7 +850,7 @@ thermz['Serial Number'] = thermz['Serial Number'].astype(str)
 electz['Serial Number'] = electz['Serial Number'].astype(str)
 
 
-# In[ ]:
+
 
 
 # Add in 0 for Radiant Power and Luminous Flux to force them to zero - COMMENT OUT IF NOT NEEDED
@@ -866,7 +862,7 @@ elect = elect.append(dfa, ignore_index = True)
 ''';
 
 
-# In[ ]:
+
 
 
 # Function for popup window
@@ -897,7 +893,7 @@ class ScrollableWindow(QtWidgets.QMainWindow):
         self.qapp.exec_()
 
 
-# In[ ]:
+
 
 
 # Function for version checking saved images for pngs
@@ -910,7 +906,7 @@ def version_png(fname):
     f.savefig('{}{:d}.png'.format(filename, i))
 
 
-# In[ ]:
+
 
 
 # Thermal - By Serial Number
@@ -954,7 +950,7 @@ c1.legend(loc='right', bbox_to_anchor=(2.48, 0), ncol=1).set_title('Serial Numbe
 c1.set_zorder(1)
 
 
-# In[ ]:
+
 
 
 # Change to version #
@@ -973,7 +969,7 @@ else:
         f.savefig(output_f + '/' + name + '_' + pulse_width + '_sn_therm.png')
 
 
-# In[ ]:
+
 
 
 # Individual Thermal Graphs - By Serial Number
@@ -992,7 +988,7 @@ for (a,b,d) in zip(y_n, y_nt, ax_n):
 ''';
 
 
-# In[ ]:
+
 
 
 # Individual Thermal Graphs - By Serial Number (Bokeh package)
@@ -1030,7 +1026,7 @@ for (a,b,c) in zip(y_n, y_nt, range(len(y_n))):
 bp.show(gridplot(children = plots, ncols = 2))
 
 
-# In[ ]:
+
 
 
 # Electrical - By Serial Number
@@ -1069,7 +1065,7 @@ c1.legend(loc='right', bbox_to_anchor=(2.48, 0), ncol=1).set_title('Serial Numbe
 c1.set_zorder(1)
 
 
-# In[ ]:
+
 
 
 if over == False:
@@ -1086,7 +1082,7 @@ else:
         f.savefig(output_f + '/' + name + '_' + pulse_width + '_sn_elect.png')
 
 
-# In[ ]:
+
 
 
 # Individual Electrical Graphs - By Serial Number
@@ -1105,7 +1101,7 @@ for (a,b,d) in zip(y_n, y_ne, ax_n):
 ''';
 
 
-# In[ ]:
+
 
 
 # Individual Electrical Graphs - By Serial Number (Bokeh package)
@@ -1137,7 +1133,7 @@ for (a,b,c) in zip(y_n, y_nt, range(len(y_n))):
 bp.show(gridplot(children = plots, ncols = 2))
 
 
-# In[ ]:
+
 
 
 # Function for version checking saved images for pdfs
@@ -1150,7 +1146,7 @@ def version_pdf(fname):
     plt.savefig('{}{:d}.pdf'.format(filename, i), dpi=1000, bbox_inches='tight')
 
 
-# In[ ]:
+
 
 
 # Just Thermal
@@ -1204,7 +1200,7 @@ for (a,b,d) in zip(y_n, y_nt, ax_n):
     axes[d].axvline(ref_temp, ls='dotted', color='black', linewidth=1)
 
 
-# In[ ]:
+
 
 
 # Just Individual Thermal Graphs
@@ -1278,7 +1274,7 @@ for (a,b,d,e) in zip(y_n, y_nt, ax_n, y_fn):
     print('The R2 score for', e, 'is: ' , r2);
 
 
-# In[ ]:
+
 
 
 # Just Electrical
@@ -1330,7 +1326,7 @@ for (a,b,d) in zip(y_n, y_ne, ax_n):
 #plt.savefig(output_f + '/' + name + '_' + pulse_width + '_elect.png')
 
 
-# In[ ]:
+
 
 
 # Just Individual Electrical Graphs
@@ -1402,7 +1398,7 @@ for (a,b,d,e) in zip(y_n, y_ne, ax_n, y_fn):
     print('The R2 score for', e, 'is: ' , r2);
 
 
-# In[ ]:
+
 
 
 # Pre-processing for chromaticity shift graph
@@ -1416,7 +1412,7 @@ elect_pre = electz[[cix, ciy, xc]]
 #elect_df
 
 
-# In[ ]:
+
 
 
 # Set min & max to +-0.02
@@ -1424,7 +1420,7 @@ min_t = -0.02
 max_t = 0.02
 
 
-# In[ ]:
+
 
 
 plt.rcParams['axes.autolimit_mode'] = 'round_numbers'
@@ -1497,7 +1493,7 @@ print('The R2 score for', cix, 'is: ' , r2_x)
 print('The R2 score for', ciy, 'is: ' , r2_y);
 
 
-# In[ ]:
+
 
 
 plt.rcParams['axes.autolimit_mode'] = 'round_numbers'
@@ -1570,7 +1566,7 @@ print('The R2 score for', cix, 'is: ' , r2_x)
 print('The R2 score for', ciy, 'is: ' , r2_y);
 
 
-# In[ ]:
+
 
 
 # Create thermal data and electrical data summary
@@ -1578,7 +1574,7 @@ thermz_sum = thermz.groupby([xt]).mean().reset_index()
 electz_sum = electz.groupby([xc]).mean().reset_index()
 
 
-# In[ ]:
+
 
 
 # Export as Excel Worksheet if needed
@@ -1600,7 +1596,7 @@ else:
     pass
 
 
-# In[ ]:
+
 
 
 # Kills script so appendix doesn't run
@@ -1609,7 +1605,7 @@ sys.exit()
 
 # # Appendix
 
-# In[ ]:
+
 
 
 '''
@@ -1644,13 +1640,13 @@ master.mainloop()
 ''';
 
 
-# In[ ]:
+
 
 
 #column = select
 
 
-# In[ ]:
+
 
 
 '''
@@ -1674,7 +1670,7 @@ plt.title(str(column) + ' vs. Tj \n By Serial Number - ' + str(pulse_width).titl
 ''';
 
 
-# In[ ]:
+
 
 
 '''
@@ -1698,7 +1694,7 @@ plt.title(str(column) + ' vs. lf \n By Serial Number - ' + str(pulse_width).titl
 ''';
 
 
-# In[ ]:
+
 
 
 # How to setup graph with zero given high weight
@@ -1731,7 +1727,7 @@ plt.axvline(ref_current, ls='dotted', color='black', linewidth=1);
 ''';
 
 
-# In[ ]:
+
 
 
 

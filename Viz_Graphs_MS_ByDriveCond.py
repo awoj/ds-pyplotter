@@ -1039,7 +1039,7 @@ sys.exit()
 
 # # Appendix
 
-# In[ ]:
+
 
 
 '''
@@ -1074,13 +1074,13 @@ master.mainloop()
 ''';
 
 
-# In[ ]:
+
 
 
 #column = select
 
 
-# In[ ]:
+
 
 
 '''
@@ -1104,7 +1104,7 @@ plt.title(str(column) + ' vs. Tj \n By Serial Number - ' + str(pulse_width).titl
 ''';
 
 
-# In[ ]:
+
 
 
 '''
@@ -1128,7 +1128,7 @@ plt.title(str(column) + ' vs. lf \n By Serial Number - ' + str(pulse_width).titl
 ''';
 
 
-# In[ ]:
+
 
 
 
